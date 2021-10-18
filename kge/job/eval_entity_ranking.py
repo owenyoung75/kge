@@ -1,4 +1,5 @@
 import math
+import time
 
 import torch
 import kge.job
@@ -13,10 +14,13 @@ class EntityRankingJob(EvaluationJob):
     def __init__(self, config: Config, dataset: Dataset, parent_job, model):
         super().__init__(config, dataset, parent_job, model)
         self.config.check(
-            "entity_ranking.tie_handling",
+            "entity_ranking.tie_handling.type",
             ["rounded_mean_rank", "best_rank", "worst_rank"],
         )
-        self.tie_handling = self.config.get("entity_ranking.tie_handling")
+        self.tie_handling = self.config.get("entity_ranking.tie_handling.type")
+
+        self.tie_atol = float(self.config.get("entity_ranking.tie_handling.atol"))
+        self.tie_rtol = float(self.config.get("entity_ranking.tie_handling.rtol"))
 
         self.filter_with_test = config.get("entity_ranking.filter_with_test")
         self.filter_splits = self.config.get("entity_ranking.filter_splits")
@@ -45,7 +49,6 @@ class EntityRankingJob(EvaluationJob):
         if self.__class__ == EntityRankingJob:
             for f in Job.job_created_hooks:
                 f(self)
-
 
     def _prepare(self):
         super()._prepare()
@@ -135,7 +138,7 @@ class EntityRankingJob(EvaluationJob):
             f(self)
 
         # let's go
-        self.timers["epoch_time"].start()
+        epoch_time = -time.time()
         for batch_number, batch_coords in enumerate(self.loader):
             # create initial batch trace (yet incomplete)
             self.current_trace["batch"] = dict(
@@ -216,8 +219,23 @@ class EntityRankingJob(EvaluationJob):
                 o_in_chunk_mask = (chunk_start <= o) & (o < chunk_end)
                 o_in_chunk = (o[o_in_chunk_mask] - chunk_start).long()
                 s_in_chunk = (s[s_in_chunk_mask] - chunk_start).long()
-                scores_sp[o_in_chunk_mask, o_in_chunk] = o_true_scores[o_in_chunk_mask]
-                scores_po[s_in_chunk_mask, s_in_chunk] = s_true_scores[s_in_chunk_mask]
+
+                # check that scoring is consistent up to configured tolerance
+                # if this is not the case, evaluation metrics may be artificially inflated
+                close_check = torch.allclose(scores_sp[o_in_chunk_mask, o_in_chunk], o_true_scores[o_in_chunk_mask],
+                                             rtol=self.tie_rtol, atol=self.tie_atol)
+                close_check &= torch.allclose(scores_po[s_in_chunk_mask, s_in_chunk], s_true_scores[s_in_chunk_mask],
+                                              rtol=self.tie_rtol, atol=self.tie_atol)
+                if not close_check:
+                    diff_a = torch.abs(scores_sp[o_in_chunk_mask, o_in_chunk] - o_true_scores[o_in_chunk_mask])
+                    diff_b = torch.abs(scores_po[s_in_chunk_mask, s_in_chunk] - s_true_scores[s_in_chunk_mask])
+                    diff_all = torch.cat((diff_a, diff_b))
+                    self.config.log(f"Tie-handling: mean difference between scores was: {diff_all.mean()}.")
+                    self.config.log(f"Tie-handling: max difference between scores was: {diff_all.max()}.")
+                    raise ValueError("Error in tie-handling. The scores assigned to a triple by the SPO and SP_/_PO "
+                                     "scoring implementations were not 'equal' given the configured tolerances. "
+                                     "Verify the model's scoring implementations or consider increasing tie-handling "
+                                     "tolerances.")
 
                 # now compute the rankings (assumes order: None, _filt, _filt_test)
                 for ranking in rankings:
@@ -425,11 +443,11 @@ class EntityRankingJob(EvaluationJob):
                         hists_filt_test[key], suffix="_filtered_with_test" + name
                     )
                 )
-        self.timers["epoch_time"].stop()
+        epoch_time += time.time()
 
         # update trace with results
         self.current_trace["epoch"].update(
-            dict(epoch_time=self.timers["epoch_time"].elapsed, event="eval_completed", **metrics,)
+            dict(epoch_time=epoch_time, event="eval_completed", **metrics,)
         )
 
     def _densify_chunk_of_labels(
@@ -514,9 +532,8 @@ num_ties for each true score.
         s_rank, s_num_ties = self._get_ranks_and_num_ties(scores_po, s_true_scores)
         return s_rank, s_num_ties, o_rank, o_num_ties, scores_sp, scores_po
 
-    @staticmethod
     def _get_ranks_and_num_ties(
-        scores: torch.Tensor, true_scores: torch.Tensor
+        self, scores: torch.Tensor, true_scores: torch.Tensor
     ) -> (torch.Tensor, torch.Tensor):
         """Returns rank and number of ties of each true score in scores.
 
@@ -534,8 +551,10 @@ num_ties for each true score.
 
         # Determine how many scores are greater than / equal to each true answer (in its
         # corresponding row of scores)
-        rank = torch.sum(scores > true_scores.view(-1, 1), dim=1, dtype=torch.long)
-        num_ties = torch.sum(scores == true_scores.view(-1, 1), dim=1, dtype=torch.long)
+        is_close = torch.isclose(scores, true_scores.view(-1, 1), rtol=self.tie_rtol, atol=self.tie_atol)
+        is_greater = scores > true_scores.view(-1, 1)
+        num_ties = torch.sum(is_close, dim=1, dtype=torch.long)
+        rank = torch.sum(is_greater & ~is_close, dim=1, dtype=torch.long)
         return rank, num_ties
 
     def _get_ranks(self, rank: torch.Tensor, num_ties: torch.Tensor) -> torch.Tensor:
