@@ -1,0 +1,28 @@
+job.type: train
+dataset.name: toy
+
+model: reciprocal_relations_model
+reciprocal_relations_model.base_model.type: semigroupe
+
+train:
+  optimizer.default:
+    type: Adam
+    args:
+      lr: 0.2
+      weight_decay: 0.4e-7
+  batch_size: 256
+  max_epochs: 200
+
+valid:
+  early_stopping:
+    patience: 5
+  every: 5
+  metric: mean_reciprocal_rank_filtered_with_test
+
+lookup_embedder:
+  initialize: xavier_normal_
+
+semigroupe:
+  sub_dim: 2
+  number_of_copies: 100
+
