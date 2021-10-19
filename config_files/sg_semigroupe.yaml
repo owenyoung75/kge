@@ -11,6 +11,6 @@ ax_search:
       is_ordered: True
     - name: semigroupe.sub_dim
       type: choice
-      values: [2, 5, 8]
+      values: [3, 5, 8]
       is_ordered: True
 
