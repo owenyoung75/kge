@@ -1,0 +1,16 @@
+model: semigroupe
+ax_search:
+  parameters:
+    # SemiGroupE
+    - name: semigroupe.l_norm
+      type: choice
+      values: [1., 2.]
+    - name: semigroupe.number_of_copies
+      type: choice
+      values: [20, 50, 100]
+      is_ordered: True
+    - name: semigroupe.sub_dim
+      type: choice
+      values: [2, 5, 8]
+      is_ordered: True
+
