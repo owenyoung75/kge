@@ -21,6 +21,10 @@ semigroupe:
   number_of_copies: 100
   l_norm: 2.
 dataset:
+  name: toy
+  num_entities: -1
+  num_relations: -1
+  pickle: true
   +++: +++
   files:
     +++: +++
@@ -45,10 +49,6 @@ dataset:
     valid:
       filename: valid.del
       type: triples
-  name: toy
-  num_entities: -1
-  num_relations: -1
-  pickle: true
 entity_ranking:
   chunk_size: -1
   filter_splits:
@@ -135,18 +135,18 @@ search:
 train:
   abort_on_nan: true
   auto_correct: false
-  batch_size: 100
+  batch_size: 200
   checkpoint:
     every: 5
-    keep: 3
+    keep: 5
   loss: kl
   loss_arg: .nan
   lr_scheduler: ReduceLROnPlateau
   lr_scheduler_args:
     +++: +++
     mode: max
-    patience: 4
-  max_epochs: 20
+    patience: 5
+  max_epochs: 500
   num_workers: 0
   optimizer: Adagrad
   optimizer_args:

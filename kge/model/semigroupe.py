@@ -4,6 +4,7 @@ import math
 
 from kge import Config, Dataset
 from kge.model.kge_model import RelationalScorer, KgeModel
+from torch.nn import functional as F
 
 
 class SemiGroupEScorer(RelationalScorer):
@@ -22,7 +23,7 @@ class SemiGroupEScorer(RelationalScorer):
                 "Combine {} not supported in SemiGroupE's score function".format(combine)
             )
         n = p_emb.size(0)
-        o_calc = torch.matmal(
+        o_calc = torch.matmul(
             s_emb.view(n, self._copies, self._subdim),
             p_emb.view(n, self._subdim, self._subdim)
         ).view(n, -1)
@@ -54,7 +55,7 @@ class SemiGroupE(KgeModel):
         super().__init__(
             config=config,
             dataset=dataset,
-            scorer=ConvEScorer(config, dataset, self.configuration_key),
+            scorer=SemiGroupEScorer(config, dataset, self.configuration_key),
             configuration_key=self.configuration_key,
             init_for_load_only=init_for_load_only,
         )
