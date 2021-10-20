@@ -1,4 +1,4 @@
-import: [conve]
+import: [lookup_embedder]
 
 # Should only be used with reciprocal relations:
 # - model: reciprocal_relations_model
@@ -10,6 +10,7 @@ semigroupe:
     +++: +++
   relation_embedder:
     type: lookup_embedder
+    +++: +++
   sub_dim: 2
   number_of_copies: 100
   l_norm: 2.

@@ -1,8 +1,7 @@
-import: [semigroupe]
-# import: [conve]
+import: [conve, semigroupe]
 
 reciprocal_relations_model:
   class_name: ReciprocalRelationsModel
   base_model:
-    type: conve
+    type: semigroupe
     +++: +++

@@ -46,10 +46,9 @@ if __name__ == "__main__":
 
     # create config files
     for dataset in datasets:
-        if os.path.exists(os.path.join(root_folder, dataset)):
-            continue
-        # set output folder for dataset
-        os.mkdir(os.path.join(root_folder, dataset))
+        if not os.path.exists(os.path.join(root_folder, dataset)):
+            # set output folder for dataset
+            os.mkdir(os.path.join(root_folder, dataset))
         for model_dict in loaded_models:
             model_name = model_dict["model"]
             # add reciprocal relations as an option if applicable
@@ -90,7 +89,8 @@ if __name__ == "__main__":
                     )
                     first_line = dataset + "-" + output_folder
                     output_folder = os.path.join(root_folder, dataset, output_folder)
-                    os.mkdir(output_folder)
+                    if not os.path.exists(output_folder):
+                        os.mkdir(output_folder)
                     # create config file from template
                     output_filename = "config.yaml"
                     output_file = open(
