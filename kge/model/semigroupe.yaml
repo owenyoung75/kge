@@ -11,6 +11,6 @@ semigroupe:
   relation_embedder:
     type: lookup_embedder
     +++: +++
-  sub_dim: 2
+  sub_dim: 3
   number_of_copies: 100
   l_norm: 2.

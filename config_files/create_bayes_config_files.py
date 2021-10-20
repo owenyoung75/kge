@@ -57,17 +57,18 @@ if __name__ == "__main__":
     best_model = all_data.sort_values("mrr").iloc[-1]
 
     # create folder for bayes search
-    output_folder = best_model["folder"] + "-bo"
-    os.mkdir(output_folder)
+    output_folder = str(best_model["folder"]) + "-bo"
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
 
     # dump best model
     if args.dump_best_model:
         best_model.to_csv(
-                os.path.join(output_folder, best_model["folder"] + "-best-model.csv"),
+                os.path.join(output_folder, str(best_model["folder"]) + "-best-model.csv"),
                 header=True
                 )
         print("Dumped best model settings to file {} in folder {}".format(
-            best_model["folder"] + "-best-model.csv", best_model["folder"]
+            str(best_model["folder"]) + "-best-model.csv", best_model["folder"]
             )
         )
 
@@ -76,7 +77,7 @@ if __name__ == "__main__":
         os.path.join(output_folder, "config.yaml"), "w"
     )
     output_file.write("# " + output_folder)
-    with open(os.path.join(best_model["folder"], "config.yaml"), "r") as best_model_config:
+    with open(os.path.join(output_folder, "config.yaml"), "r") as best_model_config:
         prevLine = ""
         for line in best_model_config:
             new_line = line.strip("\n")
@@ -111,4 +112,3 @@ if __name__ == "__main__":
 
     # done        
     print("Created file {} in folder {}".format("config.yaml", output_folder))
-
