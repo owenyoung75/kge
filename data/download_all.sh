@@ -112,65 +112,6 @@ else
 fi
 
 
-# dbpedia50
-if [ ! -d "$BASEDIR/dbpedia50" ]; then
-    echo Downloading dbpedia50
-    cd $BASEDIR
-    curl -O https://web.informatik.uni-mannheim.de/pi1/kge-datasets/dbpedia50.tar.gz
-    tar xvf dbpedia50.tar.gz
-else
-    echo dbpedia50 already present
-fi
-if [ ! -f "$BASEDIR/dbpedia50/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py dbpedia50
-else
-    echo dbpedia50 already prepared
-fi
-
-# dbpedia500
-if [ ! -d "$BASEDIR/dbpedia500" ]; then
-    echo Downloading dbpedia500
-    cd $BASEDIR
-    curl -O https://web.informatik.uni-mannheim.de/pi1/kge-datasets/dbpedia500.tar.gz
-    tar xvf dbpedia500.tar.gz
-else
-    echo dbpedia500 already present
-fi
-if [ ! -f "$BASEDIR/dbpedia500/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py dbpedia500  -S 0 -P 2 -O 1
-else
-    echo dbpedia500 already prepared
-fi
-
-# db100k
-if [ ! -d "$BASEDIR/db100k" ]; then
-    echo Downloading db100k
-    cd $BASEDIR
-    curl -O https://web.informatik.uni-mannheim.de/pi1/kge-datasets/db100k.tar.gz
-    tar xvf db100k.tar.gz
-    cd db100k
-    case "$(uname -s)" in
-        CYGWIN*|MINGW32*|MSYS*)
-            cmd.exe /c mklink train.txt _train.txt
-            cmd.exe /c mklink valid.txt _valid.txt
-            cmd.exe /c mklink test.txt _test.txt
-            ;;
-        *)
-            ln -s _train.txt train.txt
-            ln -s _valid.txt valid.txt
-            ln -s _test.txt test.txt
-            ;;
-    esac
-    cd ..
-else
-    echo db100k already present
-fi
-if [ ! -f "$BASEDIR/db100k/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py db100k
-else
-    echo db100k already prepared
-fi
-
 # yago3-10
 if [ ! -d "$BASEDIR/yago3-10" ]; then
     echo Downloading yago3-10
@@ -186,20 +127,6 @@ else
     echo yago3-10 already prepared
 fi
 
-# wikidata5m
-if [ ! -d "$BASEDIR/wikidata5m" ]; then
-    echo Downloading wikidata5m
-    cd $BASEDIR
-    curl -O https://web.informatik.uni-mannheim.de/pi1/kge-datasets/wikidata5m.tar.gz
-    tar xvf wikidata5m.tar.gz
-else
-    echo wikidata5m already present
-fi
-if [ ! -f "$BASEDIR/wikidata5m/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py wikidata5m
-else
-    echo wikidata5m already prepared
-fi
 
 # kinship
 if [ ! -d "$BASEDIR/kinship" ]; then
@@ -230,79 +157,3 @@ if [ ! -f "$BASEDIR/nations/dataset.yaml" ]; then
 else
     echo nations already prepared
 fi
-
-# umls
-if [ ! -d "$BASEDIR/umls" ]; then
-    echo Downloading umls
-    cd $BASEDIR
-    curl -O https://web.informatik.uni-mannheim.de/pi1/kge-datasets/umls.tar.gz
-    tar xvf umls.tar.gz
-else
-    echo umls already present
-fi
-if [ ! -f "$BASEDIR/umls/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py umls
-else
-    echo umls already prepared
-fi
-
-# wn11
-if [ ! -d "$BASEDIR/wn11" ]; then
-    echo Downloading wn11
-    cd $BASEDIR
-    curl -O https://web.informatik.uni-mannheim.de/pi1/kge-datasets/wn11.tar.gz
-    tar xvf wn11.tar.gz
-    mv wn11/dev.txt wn11/valid.txt
-else
-    echo wn11 already present
-fi
-
-if [ ! -f "$BASEDIR/wn11/dataset.yaml" ]; then
-    python preprocess/preprocess_wn11.py wn11
-else
-    echo wn11 already prepared
-fi
-
-# CoDEx (full text-linked dataset available at https://github.com/tsafavi/codex)
-if [ ! -d "$BASEDIR/codex-s" ]; then
-    echo Downloading CoDEx-S
-    cd $BASEDIR
-    curl -L https://zenodo.org/record/4281094/files/codex-s.tar.gz?download=1 -o codex-s.tar.gz
-    tar xvf codex-s.tar.gz
-else
-    echo CoDEx-S already present
-fi
-if [ ! -f "$BASEDIR/codex-s/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py codex-s
-else
-    echo CoDEx-S already prepared
-fi
-
-if [ ! -d "$BASEDIR/codex-m" ]; then
-    echo Downloading CoDEx-M
-    cd $BASEDIR
-    curl -L https://zenodo.org/record/4281094/files/codex-m.tar.gz?download=1 -o codex-m.tar.gz
-    tar xvf codex-m.tar.gz
-else
-    echo CoDEx-M already present
-fi
-if [ ! -f "$BASEDIR/codex-m/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py codex-m
-else
-    echo CoDEx-M already prepared
-fi
-
-if [ ! -d "$BASEDIR/codex-l" ]; then
-    echo Downloading CoDEx-L
-    cd $BASEDIR
-    curl -L https://zenodo.org/record/4281094/files/codex-l.tar.gz?download=1 -o codex-l.tar.gz
-    tar xvf codex-l.tar.gz
-else
-    echo CoDEx-L already present
-fi
-if [ ! -f "$BASEDIR/codex-l/dataset.yaml" ]; then
-    python preprocess/preprocess_default.py codex-l
-else
-    echo CoDEx-L already prepared
-fi
-
