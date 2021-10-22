@@ -1,0 +1,27 @@
+job.type: search
+dataset.name: toy
+
+train.optimizer.default.type: Adagrad
+model: reciprocal_relations_model
+reciprocal_relations_model.base_model.type: conve # redundant since also default
+
+lookup_embedder:
+  dim: 90
+  initialize: xavier_normal_
+
+conve:
+  round_dim: True
+  entity_embedder.dropout: 0.2
+  relation_embedder.dropout: 0.2
+
+search.type: ax
+ax_search:
+  num_trials: 20
+  parameters:
+    - name: train.optimizer.default.args.lr
+      type: range
+      bounds: [0.0, 1.0]
+    - name: train.optimizer.default.args.weight_decay
+      type: range
+      bounds: [1.0e-8, 1.0]
+      log_scale: True

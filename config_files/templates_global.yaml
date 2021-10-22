@@ -27,16 +27,14 @@ eval:
   batch_size: 256
   metrics_per.relation_type: True
 
-# settings for reciprocal relations (if used)
-import: [___model___, reciprocal_relations_model]
+model: reciprocal_relations_model
 reciprocal_relations_model.base_model.type: ___model___
 
 # ax settings: hyperparameter serach space
 ax_search:
   num_trials: 30
-  num_sobol_trials: 30 
+  num_sobol_trials: 10
   parameters:
-      ___models___
 
     # training hyperparameters
     - name: train.batch_size
